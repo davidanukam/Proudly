@@ -1,26 +1,29 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-export const Colors = {
+// Color palette for Proudly app
+export const colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    background: "#FFFFFF",
+    card: "#F8F9FA",
+    text: "#1A1A1A",
+    subtext: "#6E7A8A",
+    primary: "#5D7AFF", // Soft blue
+    secondary: "#FFB17A", // Soft orange
+    accent: "#FF7A9F", // Soft pink
+    success: "#7AE7B7", // Soft green
+    border: "#E5E7EB",
+    highlight: "#F0F4FF",
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    background: "#121212",
+    card: "#1E1E1E",
+    text: "#F8F9FA",
+    subtext: "#A0A9B8",
+    primary: "#7A92FF", // Lighter blue for dark mode
+    secondary: "#FFB17A", // Same soft orange
+    accent: "#FF8CAA", // Lighter pink for dark mode
+    success: "#7AE7B7", // Same soft green
+    border: "#2A2A2A",
+    highlight: "#252A3A",
   },
 };
+
+export default colors;

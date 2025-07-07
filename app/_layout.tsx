@@ -1,29 +1,69 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import React, { useEffect } from "react";
+import { Platform, useColorScheme } from "react-native";
+import { Stack } from "expo-router";
+import { useFonts } from "expo-font";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+// Prevent the splash screen from auto-hiding
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  const [fontsLoaded] = useFonts({
+    // You can add custom fonts here if needed
   });
 
-  if (!loaded) {
-    // Async font loading only occurs in development.
+  const { theme } = useSettingsStore();
+  const colorScheme = useColorScheme();
+
+  // Determine the actual theme based on settings and system preference
+  const actualTheme = theme === "system" ? colorScheme || "light" : theme;
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) {
     return null;
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+    <>
+      <StatusBar style={actualTheme === "dark" ? "light" : "dark"} />
+      <Stack
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: actualTheme === "dark" ? "#121212" : "#FFFFFF",
+          },
+          headerTintColor: actualTheme === "dark" ? "#FFFFFF" : "#1A1A1A",
+          headerShadowVisible: false,
+          headerBackTitle: "Back",
+          contentStyle: {
+            backgroundColor: actualTheme === "dark" ? "#121212" : "#F8F9FA",
+          },
+        }}
+      >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
+        <Stack.Screen
+          name="entry/[id]"
+          options={{
+            title: "Entry Details",
+            presentation: Platform.OS === "ios" ? "card" : "transparentModal",
+            animation: "slide_from_right",
+          }}
+        />
+        <Stack.Screen
+          name="day/[date]"
+          options={{
+            title: "Daily Entries",
+            presentation: Platform.OS === "ios" ? "card" : "transparentModal",
+            animation: "slide_from_bottom",
+          }}
+        />
       </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    </>
   );
 }

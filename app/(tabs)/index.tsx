@@ -1,75 +1,110 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+} from "react-native";
+import { useEntriesStore } from "@/store/useEntriesStore";
+import { colors } from "@/constants/colors";
+import EntryCard from "@/components/EntryCard";
+import EmptyState from "@/components/EmptyState";
+import StreakCounter from "@/components/StreakCounter";
+import OnThisDay from "@/components/OnThisDay";
+import { formatDate } from "@/utils/dateUtils";
+import { Smile } from "lucide-react-native";
 
 export default function HomeScreen() {
+  const [refreshing, setRefreshing] = React.useState(false);
+  const { entries } = useEntriesStore();
+
+  const sortedEntries = [...entries].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Simulate a refresh
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1000);
+  }, []);
+
+  // Group entries by date
+  const entriesByDate: Record<string, typeof entries> = {};
+
+  sortedEntries.forEach((entry) => {
+    const dateKey = new Date(entry.date).toDateString();
+    entriesByDate[dateKey] ??= [];
+    entriesByDate[dateKey].push(entry);
+  });
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={
+        entries.length === 0 ? styles.emptyContainer : styles.contentContainer
+      }
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      {entries.length === 0 ? (
+        <EmptyState
+          title="No moments yet"
+          message="Start capturing moments you're proud of by adding your first entry."
+          icon={<Smile size={48} color={colors.light.subtext} />}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+      ) : (
+        <>
+          <StreakCounter />
+
+          <OnThisDay />
+
+          <Text style={styles.sectionTitle}>Recent Moments</Text>
+
+          {Object.entries(entriesByDate).map(([date, dateEntries]) => (
+            <View key={date} style={styles.dateGroup}>
+              <Text style={styles.dateHeader}>{formatDate(date)}</Text>
+              {dateEntries.map((entry) => (
+                <EntryCard key={entry.id} entry={entry} />
+              ))}
+            </View>
+          ))}
+        </>
+      )}
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: colors.light.background,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 32,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: colors.light.text,
+    marginBottom: 16,
+  },
+  dateGroup: {
+    marginBottom: 24,
+  },
+  dateHeader: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: colors.light.subtext,
+    marginBottom: 12,
   },
 });
